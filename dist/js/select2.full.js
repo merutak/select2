@@ -778,13 +778,23 @@ S2.define('select2/results',[
 
     var message = this.options.get('translations').get(params.message);
 
+    if (!message || message.length === 0) {
+        return;
+    }
+
     $message.append(
       escapeMarkup(
         message(params.args)
       )
     );
 
+    $message[0].className += ' select2-results__message';
+
     this.$results.append($message);
+  };
+
+  Results.prototype.hideMessages = function () {
+    this.$results.find('.select2-results__message').remove();
   };
 
   Results.prototype.append = function (data) {
@@ -986,6 +996,7 @@ S2.define('select2/results',[
     });
 
     container.on('query', function (params) {
+      self.hideMessages();
       self.showLoading(params);
     });
 
@@ -1369,7 +1380,7 @@ S2.define('select2/selection/base',[
   BaseSelection.prototype._handleBlur = function (evt) {
     var self = this;
 
-    // This needs to be delayed as the actve element is the body when the tab
+    // This needs to be delayed as the active element is the body when the tab
     // key is pressed, possibly along with others.
     window.setTimeout(function () {
       // Don't trigger `blur` if the focus is still in the selection
@@ -1624,6 +1635,8 @@ S2.define('select2/selection/multiple',[
       $selections.push($selection);
     }
 
+    $selections.push($('<span class="select2-truncation"></span>'));
+
     var $rendered = this.$selection.find('.select2-selection__rendered');
 
     Utils.appendMany($rendered, $selections);
@@ -1860,7 +1873,11 @@ S2.define('select2/selection/search',[
         if ($previousChoice.length > 0) {
           var item = $previousChoice.data('data');
 
-          self.searchRemoveChoice(item);
+          if (this.options.get('backspaceDeletes')) {
+              self.trigger('unselect', {data: item});
+          } else {
+              self.searchRemoveChoice(item);
+          }
 
           evt.preventDefault();
         }
@@ -3766,6 +3783,10 @@ S2.define('select2/dropdown',[
     return $dropdown;
   };
 
+  Dropdown.prototype.bind = function () {
+    // Should be implemented in subclasses
+  };
+
   Dropdown.prototype.position = function ($dropdown, $container) {
     // Should be implmented in subclasses
   };
@@ -4134,7 +4155,7 @@ S2.define('select2/dropdown/attachBody',[
     var newDirection = null;
 
     var position = this.$container.position();
-    var offset = this.$container.offset();
+    var offset = position; // this.$container.offset();
 
     offset.bottom = offset.top + this.$container.outerHeight(false);
 
@@ -5955,7 +5976,7 @@ S2.define('jquery.select2',[
 
         var args = Array.prototype.slice.call(arguments, 1);
 
-        var ret = instance[options](args);
+        var ret = instance[options].apply(instance, args);
 
         // Check if we should be returning `this`
         if ($.inArray(options, thisMethods) > -1) {

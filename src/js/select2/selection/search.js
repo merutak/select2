@@ -78,7 +78,11 @@ define([
         if ($previousChoice.length > 0) {
           var item = $previousChoice.data('data');
 
-          self.searchRemoveChoice(item);
+          if (this.options.get('backspaceDeletes')) {
+              self.trigger('unselect', {data: item});
+          } else {
+              self.searchRemoveChoice(item);
+          }
 
           evt.preventDefault();
         }
