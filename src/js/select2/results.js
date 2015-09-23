@@ -42,6 +42,10 @@ define([
 
     var message = this.options.get('translations').get(params.message);
 
+    if (!message || message.length === 0) {
+        return;
+    }
+
     $message.append(
       escapeMarkup(
         message(params.args)
