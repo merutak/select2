@@ -100,6 +100,8 @@ define([
       $selections.push($selection);
     }
 
+    $selections.push($('<span class="select2-truncation"></span>'));
+
     var $rendered = this.$selection.find('.select2-selection__rendered');
 
     Utils.appendMany($rendered, $selections);
